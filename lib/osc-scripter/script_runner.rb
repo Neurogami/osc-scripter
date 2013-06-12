@@ -22,7 +22,7 @@ module Neurogami
       def serve
         @server.add_method /.*/ do |msg|
           # The assumption is that content of the OSC message is simply a string such as what
-          # you owuld have in a script file.  This method just takes that string and
+          # you would have in a script file.  This method just takes that string and
           # has the runner execute it
             puts "* #{msg.address} -  #{ msg.to_a.join(', ') }"
             @runner.execute_command msg.to_a.join(' ')
@@ -38,10 +38,13 @@ module Neurogami
       end
 
     end
+
+
     class ScriptRunner
 
       include  OSC
       include Utils
+      
       TIME_FRACTION = 0.1
 
       def initialize script_path
@@ -61,7 +64,6 @@ module Neurogami
       end
 
       def execute_command c
-
         if c =~ /^\d/
           tnow = Time.now
           pause = c.to_f
@@ -72,8 +74,10 @@ module Neurogami
           end
         else
           if  c =~ /^:/ # This is a complex command request
+            
             warn "==================== COMPLEX COMMAND ===================="
             data = chunk_complex_command_string c
+
             if data[:command] == 'stoploop' # special command
               stoploop data[:label]
             else
@@ -90,6 +94,7 @@ module Neurogami
                 if data[:label]
                   @threaded_loops[data[:label]] = t 
                 end
+             
               else
                 send data[:command], *data[:args] 
               end
@@ -106,9 +111,10 @@ module Neurogami
       def parse_script raw_script_lines 
         @address, @port= raw_script_lines.shift.split ':'
         @port = @port.to_i
-        raise "OSC server port cannot be '#{@port}'" unless @port > 1000 # Need sure if this is ideal, but it's a start
+        raise "OSC server port cannot be '#{@port}'" unless @port > 0 # Not ideal, but it's a start
         @internal_port = raw_script_lines.shift
         @internal_port = @internal_port.to_i
+        raise "Internal OSC server port cannot be '#{@internal_port}'" unless @internal_port > 0
         @commands = raw_script_lines.clone
       end
 
@@ -129,7 +135,6 @@ module Neurogami
         s.sub!  /^:@/, ''
         s.sub!  /^:/, ''
         parts = s.split '||'
-        h[:label] = nil
 
         h[:command] = parts.shift
 
@@ -143,33 +148,11 @@ module Neurogami
       end
 
 
-      # The idea is to be able to define some sort of messaging sequence that is executed inside an endless loop
-      # Later commands in a script could then stop this loop
-      # 
-      # So, two problems.  One, how can we wrap other helper methods (such as `interpolate2`) in a loop?
-      #  Right now, if a complex command is encountered, we do chunk it out and then do this:
-      #      send data[:command], *data[:args] 
-      # Suppose we looked for yet another marker, perhaps  a leading '@', and that meant we did this:
-      #  
-      #  Thread.new do
-      #     while true;  send data[:command], *data[:args] ; end
-      #  end
-      #
-      #   The trouble is that the command would be using a Thread, so we get endless threads created.
-      #
-      #   If we told that iner method not to thread, then the master loop would be the only thread.
-      #
-      #   Seems that some guidelines would have to be followed when creating custom handlers for complex commands
-      #   If they employ a thread they have to have a way to know if that thread should be skipped because the
-      #   whole thing is inside a master loop.
-      #
-      def loop
-      end
 
       # We have 2 methods that are basically the same.  Is there a sensible way to abstract them so
-      # that we can have methods that handle inteprolated values for any number of values?
+      # that we can have methods that handle interpolated values for any number of values?
       # Or, if not that, consider a way to keep such methods in helper libs so that users can
-      # add their own for the needs of their particualr scripts and OSC?
+      # add their own for the needs of their particular scripts and OSC?
 
       def interpolate2 addr_pattern, startx, starty, endx, endy, duration, looped=false
         warn "******** interpolate2 #{addr_pattern} looped = #{looped} ************" 
@@ -241,7 +224,6 @@ module Neurogami
       def run
         @commands.each do |c|
           next  if c =~ /^#/
-
           execute_command c
         end
       end
@@ -263,10 +245,8 @@ module Neurogami
             warn '!'*80
           end
         end
-
-        t.join
-        sleep 0.02
-
+#        t.join
+        sleep TIME_FRACTION
       end
 
     end
