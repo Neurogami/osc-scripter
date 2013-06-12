@@ -6,4 +6,5 @@ notes.md
 .osc-config.yaml
 demo_script.txt
 *.oscr
+tasks/ng.rake
 
