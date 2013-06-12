@@ -1,19 +1,36 @@
 osc-scripter
 ===========
 
-Command-line app to send timed OSC messaged to a target
+Command-line app to send a series of OSC ([Open Sound Control](http://osc.justthebestparts.com/)) messages to a target OSC server.  The program reads a script file that contains some basic configuration info and then a series of commands.
+
+The commands can be raw OSC messages, or they can be instructions to invoke a method that in turn constructs a sequence of OSC messages.
+
+Such complex commands can also be set to run in an endless loop, so you can kick of some repeating behavior while continuing to send other messages.
+
+[Learn more about OSC here](http://osc.justthebestparts.com/)
+
+The code is still kind of raw, with some experimentation going on. But it works, and it's quite slick.
 
 Features
 --------
 
-The idea is that you set up a script file that defines a sequence of OSC messages to be sent to an OSC server. The messages have timing information interleaved, such that you can sent a message, pause for 20 seconds, send the next message, pause for 5 seconds, send another message, and so on.
+* Send "raw" OSC messages
+* Set timed delays between messages
+* Send meta commands that in turn create sequences of OSC messages
+* Run a sequence of messages in a named loop
+* Send commands to stop a named message loops
 
 
 
 Examples
 --------
 
-Still to come
+Full examples are not ready (since they need an SOC server that will act on the OSC messages in some practical way).
+
+Script syntax
+-------------
+
+
 
 Requirements
 ------------
@@ -23,7 +40,8 @@ Ruby, osc-ruby
 Install
 -------
 
-Grab the source from github.com.
+Grab the source from github.com. A gem will at some point be up at [gems.neurogami.com](http://www.neurogami.com/gems/)
+
 
 Author
 ------
