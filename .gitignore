@@ -1,0 +1,9 @@
+pkg
+sample_script.txt
+*.log
+notes.md
+.bnsignore
+.osc-config.yaml
+demo_script.txt
+*.oscr
+

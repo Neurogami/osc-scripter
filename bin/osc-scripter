@@ -1,0 +1,18 @@
+#!/usr/bin/env ruby
+
+root = File.expand_path('../..', __FILE__)
+require File.join(root, %w[lib osc-scripter])
+
+# Put your code here
+
+if ARGV.empty?
+  puts "Usage: osc-scripter <path-to-script-file>"
+  exit
+end
+
+
+script = Neurogami::OscScripter::ScriptRunner.new ARGV.first
+
+script.run
+puts "Done.\n"
+
