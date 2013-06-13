@@ -25,7 +25,7 @@ Features
 * Run a sequence of messages in a named loop
 * Send commands to stop a named message loops
 * Accept OSC commands containing script commands to invoke
-
+* Dynamically load new command handlers
 
 Examples
 --------
@@ -100,6 +100,10 @@ This tells the program to go look up the thread reference keyed with that label 
 
 And that's it, so far, with script commands.
 
+
+Internal OSC server 
+-----------------
+
 There's is also an OSC server that runs inside the program.  It matches on all address patterns (for better or worse).  It assumes that whatever argument is sent with the message is a script command of some kind, and is immediately executed as such.
 
 This is helpful for live performances where the somewhat loose timing of a script can be compensated with immediate commands sent from some other source ([TouchOSC](http://hexler.net/software/touchosc), for example, or [Control](http://charlie-roberts.com/Control/)).
@@ -107,6 +111,15 @@ This is helpful for live performances where the somewhat loose timing of a scrip
 It also means that you can run scripts against applications that can, in turn, send back OSC messages, such as [Renoise](http://www.renoise.com/).
 
 For some existential fun you can have two instances of `osc-scripter` interact with each other.
+
+If for some reason you do not want an internal OSC server then set that port to 0.
+
+
+Loading custom command handlers
+-------------------------------
+
+When `osc-scripter` starts, and before executing any script commands, it tries to load a file from the current working directory named
+
 
 Requirements
 ------------

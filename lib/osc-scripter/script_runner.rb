@@ -12,11 +12,18 @@ module Neurogami
 
       def initialize port, runner 
         @runner = runner 
+        if port.to_i > 0
+       
         @server = Server.new port
 
        Thread.new do 
           serve
        end
+
+        else
+            warn "OscServer has been given port 0, so no server will be available"
+        end
+
       end
 
       def serve
@@ -34,7 +41,9 @@ module Neurogami
       end
 
       def kill 
-        @thread.kill
+       
+        @server = nil
+        @thread.kill if @thread
       end
 
     end
@@ -47,12 +56,29 @@ module Neurogami
       
       TIME_FRACTION = 0.1
 
-      def initialize script_path
+      def initialize script_path, custom_hander_file_path=nil
         @raw_script_lines = IO.readlines script_path
         parse_script @raw_script_lines 
         @client = Client.new @address, @port
         @threaded_loops = {}
         @server = OscServer.new @internal_port, self
+        load_handlers custom_hander_file_path
+      end
+
+      def stop_server
+        @server.kill
+      end
+
+      def load_handlers file_path
+        return nil unless file_path
+        
+        if File.exist? file_path
+          load file_path
+          return file_path
+        else
+          warn "load_handlers cannot find '#{file_path}'"
+          return nil
+        end
       end
 
       def port
@@ -114,7 +140,7 @@ module Neurogami
         raise "OSC server port cannot be '#{@port}'" unless @port > 0 # Not ideal, but it's a start
         @internal_port = raw_script_lines.shift
         @internal_port = @internal_port.to_i
-        raise "Internal OSC server port cannot be '#{@internal_port}'" unless @internal_port > 0
+        #####raise "Internal OSC server port cannot be '#{@internal_port}'" unless @internal_port > 0
         @commands = raw_script_lines.clone
       end
 

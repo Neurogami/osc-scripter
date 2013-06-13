@@ -6,12 +6,13 @@ require File.join(root, %w[lib osc-scripter])
 # Put your code here
 
 if ARGV.empty?
-  puts "Usage: osc-scripter <path-to-script-file>"
+  puts "Usage: osc-scripter <path-to-script-file> [optional-path-handler-code-file]"
   exit
 end
 
 
-script = Neurogami::OscScripter::ScriptRunner.new ARGV.first
+
+script = Neurogami::OscScripter::ScriptRunner.new *ARGV
 
 script.run
 puts "Done.\n"

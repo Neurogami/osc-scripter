@@ -3,6 +3,8 @@ $:.unshift File.dirname(__FILE__) + "/.."
 
 require 'osc-scripter'
 
+$starting_port = 0
+
 class TestUtils < Test::Unit::TestCase
 
   include Neurogami::OscScripter
@@ -13,13 +15,18 @@ class TestUtils < Test::Unit::TestCase
     @script_path = "sample_script.txt"
     @address = '127.0.0.1'
     @port = 8003
-    @internal_port = 8005
+    @internal_port = $starting_port 
     @script = sample_script @address, @port, @internal_port 
     File.open(@script_path, 'w')  { |f|  f.print @script }
+    @scripter = ScriptRunner.new   @script_path 
   end
 
   def teardown
     @script = nil
+    # @scripter.stop_server
+    sleep 2
+    @scripter = nil
+
     File.unlink @script_path
   end
 
@@ -60,33 +67,37 @@ class TestUtils < Test::Unit::TestCase
 
 
   def test_creating_instance
-    scripter = ScriptRunner.new   @script_path 
-    assert_equal ScriptRunner, scripter.class
-    assert_equal @port, scripter.port
-    assert_equal @address, scripter.address
-    assert_equal IO.readlines(@script_path).size - 1,   scripter.instance_variable_get("@commands").size
+    assert_equal ScriptRunner, @scripter.class
+    assert_equal @port, @scripter.port
+    assert_equal @address, @scripter.address
+    assert_equal IO.readlines(@script_path).size - 2,   @scripter.instance_variable_get("@commands").size
+  end
+
+  def test_loading_handlers
+    handler_file = File.basename __FILE__
+    handler_path = File.dirname __FILE__    
+    results = File.join handler_path, handler_file
+    assert_equal results, @scripter.load_handlers( results)
   end
 
   def test_osc_instantiation
-    scripter = ScriptRunner.new @script_path 
-    assert_equal Client,  scripter.instance_variable_get("@client").class
+    assert_equal Client,  @scripter.instance_variable_get("@client").class
   end
 
   def test_complex_command
-    scripter = ScriptRunner.new @script_path 
-    data = scripter.chunk_complex_command_string  ':interpolate2||/animata/sprite_left/layer/main_head/move||500.0||30.0||100.0||120.0||5'
+    data = @scripter.chunk_complex_command_string  ':interpolate2||/animata/sprite_left/layer/main_head/move||500.0||30.0||100.0||120.0||5'
     assert_equal 'interpolate2',  data[:command]
     assert_equal 6,  data[:args].size
     assert_equal false,  data[:looped]
     start_val = 100
     end_val = 110 
     duration = 2.0
-    steps_num = scripter.number_of_steps duration
+    steps_num = @scripter.number_of_steps duration
 
     assert_equal 20,  steps_num
-    val_steps = scripter.calculate_value_steps  start_val, end_val, duration
+    val_steps = @scripter.calculate_value_steps  start_val, end_val, duration
 
-    data = scripter.chunk_complex_command_string  ':@interpolate2||/animata/sprite_left/layer/main_head/move||500.0||30.0||100.0||120.0||5'
+    data = @scripter.chunk_complex_command_string  ':@interpolate2||/animata/sprite_left/layer/main_head/move||500.0||30.0||100.0||120.0||5'
     assert_equal 'interpolate2',  data[:command]
     assert_equal 6,  data[:args].size
     assert_equal true,  data[:looped]
@@ -94,19 +105,19 @@ class TestUtils < Test::Unit::TestCase
     start_val = 0.0
     end_val = 1.0
     duration = 5.0
-    steps_num = scripter.number_of_steps duration
+    steps_num = @scripter.number_of_steps duration
 
     assert_equal 50,  steps_num
-    val_steps = scripter.calculate_value_steps  start_val, end_val, duration
+    val_steps = @scripter.calculate_value_steps  start_val, end_val, duration
 
 
-    data = scripter.chunk_complex_command_string  ':@interpolate2[alpha-loop]||/animata/sprite_left/layer/main_head/move||500.0||30.0||100.0||120.0||5'
+    data = @scripter.chunk_complex_command_string  ':@interpolate2[alpha-loop]||/animata/sprite_left/layer/main_head/move||500.0||30.0||100.0||120.0||5'
     assert_equal 'interpolate2',  data[:command]
     assert_equal 6,  data[:args].size
     assert_equal true,  data[:looped]
     assert_equal 'alpha-loop',  data[:label]
 
-    data = scripter.chunk_complex_command_string  ':stoploop[alpha-loop]'
+    data = @scripter.chunk_complex_command_string  ':stoploop[alpha-loop]'
     assert_equal 'stoploop',  data[:command]
     assert_equal 0,  data[:args].size
     assert_equal false,  data[:looped]
