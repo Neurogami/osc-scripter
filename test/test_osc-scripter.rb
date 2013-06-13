@@ -91,12 +91,12 @@ class TestUtils < Test::Unit::TestCase
     assert_equal 6,  data[:args].size
     assert_equal true,  data[:looped]
     assert_equal nil,  data[:label]
-    start_val = 100
-    end_val = 110 
-    duration = 2.0
+    start_val = 0.0
+    end_val = 1.0
+    duration = 5.0
     steps_num = scripter.number_of_steps duration
 
-    assert_equal 20,  steps_num
+    assert_equal 50,  steps_num
     val_steps = scripter.calculate_value_steps  start_val, end_val, duration
 
 
