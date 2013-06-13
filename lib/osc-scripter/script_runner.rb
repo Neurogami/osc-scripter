@@ -62,14 +62,14 @@ module Neurogami
         @client = Client.new @address, @port
         @threaded_loops = {}
         @server = OscServer.new @internal_port, self
-        load_handlers custom_hander_file_path
+        load_file custom_hander_file_path
       end
 
       def stop_server
         @server.kill
       end
 
-      def load_handlers file_path
+      def load_file file_path
         return nil unless file_path
         warn "We are currently in #{Dir.pwd}"
         file_path = File.expand_path file_path
@@ -77,7 +77,7 @@ module Neurogami
           load file_path
           return file_path
         else
-          warn "load_handlers cannot find '#{file_path}'"
+          warn "load_file cannot find '#{file_path}'"
           return nil
         end
       end

@@ -1,7 +1,8 @@
 osc-scripter
 ===========
 
-Command-line app to send a series of OSC ([Open Sound Control](http://osc.justthebestparts.com/)) messages to a target OSC server.  The program reads a script file that contains some basic configuration info and then a series of commands.
+
+Command-line app to send a series of OSC ([Open Sound Control](http://osc.justthebestparts.com/)) messages to a target OSC server.  The program reads a script file that contains some basic configuration info and then a series of commands. 
 
 The commands can be raw OSC messages, or they can be instructions to invoke a method that in turn constructs a sequence of OSC messages.
 
@@ -15,6 +16,10 @@ The program reads in a script file, parses out some configuration details, and t
 
 The program, while running, also listens for OSC messages.  It assumes that any message it receives is a raw string formatted as a script command.  These messages are executed as soon as they are received.
 
+Script commands include the ability to execute methods defined in `osc-scripter`.  One of those methods, `load_file` loads an external file that (presumably) contains Ruby code defining more command handlers.
+
+You can also load custom code when you start `osc-scripter` by passing in the path to a source file.
+
 
 Features
 --------
@@ -25,12 +30,13 @@ Features
 * Run a sequence of messages in a named loop
 * Send commands to stop a named message loops
 * Accept OSC commands containing script commands to invoke
-* Dynamically load new command handlers
+* Dynamically load files (e.g, additional command handlers) from script commands 
 
 Examples
 --------
 
-Full examples are not ready (since they need an SOC server that will act on the OSC messages in some practical way).
+There is an example in the  `examples/` folder. It requires you to also have the [AnimataP5-ng](https://github.com/Neurogami/animatap5-ng) Processing library and works against one of the examples included there.
+
 
 Script syntax
 -------------
@@ -98,7 +104,6 @@ This tells the program to go look up the thread reference keyed with that label 
 
 (BTW, it may now occur to you now that there are at least _two_ ways to stop a loop.)
 
-And that's it, so far, with script commands.
 
 
 Internal OSC server 
@@ -118,13 +123,20 @@ If for some reason you do not want an internal OSC server then set that port to 
 Loading custom command handlers
 -------------------------------
 
-When `osc-scripter` starts, and before executing any script commands, it tries to load a file from the current working directory named
+
+When running `osc-scripter` you can pass, in addition to the name of the script file, the path to some source code file.  This file will be loaded (i.e. `load` is called on the file path) at the start of the program.
+
+Since that is done using a built-in method named (surprise) `load_file` you can also load files from our script or by OSC (by sending a script command to load a file).
+
+If you want to be _really_ clever you could load a file that defines a method that calls `eval` and dynamically add code using OSC.
+
+Proof is left as an exercise for the reader.
 
 
 Requirements
 ------------
 
-Ruby, osc-ruby
+Ruby, the osc-ruby gem, and a sense of adventure.
 
 Install
 -------
@@ -134,7 +146,7 @@ Grab the source from github.com. A gem will at some point be up at [gems.neuroga
 Usage
 ------
 
-    $ osc-scripter <path-to-script-file>
+    $ osc-scripter <path-to-script-file> [optional-path-to-additional-code-file]
 
 
 
