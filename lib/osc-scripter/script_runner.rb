@@ -71,7 +71,8 @@ module Neurogami
 
       def load_handlers file_path
         return nil unless file_path
-        
+        warn "We are currently in #{Dir.pwd}"
+        file_path = File.expand_path file_path
         if File.exist? file_path
           load file_path
           return file_path
@@ -161,7 +162,7 @@ module Neurogami
         s.sub!  /^:@/, ''
         s.sub!  /^:/, ''
         parts = s.split '||'
-
+        parts.map!{ |_| _.strip }
         h[:command] = parts.shift
 
         if  h[:command] =~ /(.+)\[(.+)\]/
