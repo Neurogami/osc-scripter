@@ -19,9 +19,8 @@ module Neurogami
        Thread.new do 
           serve
        end
-
         else
-            warn "OscServer has been given port 0, so no server will be available"
+           warn "OscServer has been given port 0, so no server will be available"
         end
 
       end
@@ -248,6 +247,9 @@ module Neurogami
         diff/(steps_num-1).to_f 
       end
 
+      # Something to consider:  If the list of commands is exhusted, the runner stops.
+      # However, it *could* keep running and wait for commands over OSC.
+      #
       def run
         @commands.each do |c|
           next  if c =~ /^#/
@@ -272,7 +274,6 @@ module Neurogami
             warn '!'*80
           end
         end
-#        t.join
         sleep TIME_FRACTION
       end
 

@@ -1,0 +1,18 @@
+127.0.0.1:8004
+8005
+0.5
+/animata/osc-for-artists/layer/waves/alpha  1.0
+/animata/osc-for-artists/layer/waves/scale  1.0
+10
+# Try to load an external file with some handler methods in it ...
+:load_file||examples/AnimatedBookCover/book_demo_handlers.rb
+5
+:@radiate[alpha_loop]||2
+:@interpolate1[scale_loop]||/animata/osc-for-artists/layer/waves/scale||0.3||4.0||2
+20
+:stoploop[alpha_loop]
+:stoploop[scale_loop]
+10
+/animata/osc-for-artists/layer/waves/scale   1.0
+/animata/osc-for-artists/layer/waves/alpha   1.0
+20
