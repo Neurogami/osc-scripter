@@ -24,7 +24,7 @@ int maxAnimationLoop = 5;
 HashMap sceneTable = new HashMap();
 HashMap mainCharacterScenes = new HashMap();
 
-String mainSceneName = "osc-for-artists_02";
+String mainSceneName = "osc-for-artists";
 
 AnimataP5 mainScene;
 
@@ -39,7 +39,7 @@ boolean sketchFullScreen() {
 //-----------------------------------------------------------
 void setup() {
   size(508, 738, OPENGL);
-  loadScene("osc-for-artists_02");
+  loadScene(mainSceneName);
   mainScene = (AnimataP5) sceneTable.get(mainSceneName);
   loadData();
   setupOsc();
