@@ -35,7 +35,7 @@ Features
 Examples
 --------
 
-There is an example in the  `examples/` folder. It requires you to also have the [AnimataP5-ng](https://github.com/Neurogami/animatap5-ng) Processing library and works against one of the examples included there.
+Please see [https://github.com/JustTheBestParts/OSC-Demos](https://github.com/JustTheBestParts/OSC-Demos).
 
 
 Script syntax

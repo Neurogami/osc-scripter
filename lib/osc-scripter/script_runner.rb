@@ -53,7 +53,7 @@ module Neurogami
       include  OSC
       include Utils
       
-      TIME_FRACTION = 0.1
+      TIME_FRACTION = 0.01
 
       def initialize script_path, custom_hander_file_path=nil
         @raw_script_lines = IO.readlines script_path
