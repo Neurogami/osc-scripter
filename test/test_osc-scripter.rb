@@ -77,7 +77,7 @@ class TestUtils < Test::Unit::TestCase
     handler_file = File.basename __FILE__
     handler_path = File.dirname __FILE__    
     results = File.join handler_path, handler_file
-    assert_equal results, @scripter.load_handlers( results)
+    assert_equal results, @scripter.load_file( results)
   end
 
   def test_osc_instantiation
@@ -94,7 +94,7 @@ class TestUtils < Test::Unit::TestCase
     duration = 2.0
     steps_num = @scripter.number_of_steps duration
 
-    assert_equal 20,  steps_num
+    assert_equal 200,  steps_num
     val_steps = @scripter.calculate_value_steps  start_val, end_val, duration
 
     data = @scripter.chunk_complex_command_string  ':@interpolate2||/animata/sprite_left/layer/main_head/move||500.0||30.0||100.0||120.0||5'
@@ -107,7 +107,7 @@ class TestUtils < Test::Unit::TestCase
     duration = 5.0
     steps_num = @scripter.number_of_steps duration
 
-    assert_equal 50,  steps_num
+    assert_equal 500,  steps_num
     val_steps = @scripter.calculate_value_steps  start_val, end_val, duration
 
 

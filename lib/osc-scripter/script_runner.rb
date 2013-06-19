@@ -26,7 +26,13 @@ module Neurogami
       end
 
       def serve
-        @server.add_method /.*/ do |msg|
+        @server.add_method /eval/ do |msg|
+            puts "* #{msg.address} -  #{ msg.to_a.join(', ') }"
+            @runner.execute_command msg.to_a.join(' ')
+        end
+
+
+        @server.add_method /add/ do |msg|
           # The assumption is that content of the OSC message is simply a string such as what
           # you would have in a script file.  This method just takes that string and
           # has the runner execute it
@@ -40,7 +46,6 @@ module Neurogami
       end
 
       def kill 
-       
         @server = nil
         @thread.kill if @thread
       end
@@ -55,10 +60,22 @@ module Neurogami
       
       TIME_FRACTION = 0.01
 
+      def loop_on
+        @looping = true
+      end
+
+     def loop_off
+        @looping = false
+      end
+
       def initialize script_path, custom_hander_file_path=nil
+        loop_off
         @raw_script_lines = IO.readlines script_path
         parse_script @raw_script_lines 
+        raise "Cannot have nil server address!" unless @address
+        raise "Cannot have nil server port!"    unless @port
         @client = Client.new @address, @port
+
         @threaded_loops = {}
         @server = OscServer.new @internal_port, self
         load_file custom_hander_file_path
@@ -90,7 +107,16 @@ module Neurogami
       end
 
       def execute_command c
-        if c =~ /^\d/
+        c = c.to_s
+        c.strip!
+        @commands.push(c) if looping?
+        warn "\t\texecute_command #{c}"
+        
+# Maybe a hack, but this allows a comment to server as a 'keep alive' command
+        # if 'looping?' is true
+        return if c =~ /^#/
+
+        if c =~ /^[0..9]/
           tnow = Time.now
           pause = c.to_f
           warn  "Pause for #{pause} seconds ..."
@@ -113,7 +139,10 @@ module Neurogami
                 data[:args] << data[:looped]
                 t = Thread.new do
                   while true
-                    send data[:command], *data[:args] 
+                    # What happens is that the loop keeps calling this method over and over but does 
+                    # not seem to be waiting for that method to return
+                    results = send( data[:command], *data[:args] )
+                    puts results # DEBUG
                   end
                 end
 
@@ -164,7 +193,7 @@ module Neurogami
         parts.map!{ |_| _.strip }
         h[:command] = parts.shift
 
-        if  h[:command] =~ /(.+)\[(.+)\]/
+        if h[:command] =~ /(.+)\[(.+)\]/
           h[:command] = $1
           h[:label] = $2
         end
@@ -247,13 +276,50 @@ module Neurogami
         diff/(steps_num-1).to_f 
       end
 
+      def looping?
+        @looping
+      end
+
+      def process_comand_list
+        while !@commands.empty? do
+          c = @commands.shift 
+          c.strip!
+          next if c.empty?
+          warn "HAVE COMMAND: #{c.inspect}"
+          # next  if c =~ /^#/
+          execute_command c
+        end
+      end
+
       # Something to consider:  If the list of commands is exhusted, the runner stops.
       # However, it *could* keep running and wait for commands over OSC.
       #
+      # We could also allow for OSC messages that add commands to the queue.
+      #
+      # To do that we need a loop that keeps pulling of a queue; we can't do  a 
+      # 'for-each' thing since the count can change.
+      #
+      # Once option is that there's a higher-level thread that, if `run` returns,
+      # just calls it again.
+      #
+      # HOWEVER: For this to work we need to pop the commands off the array or else
+      # they all get run again.  That might make for a nice option ...
+      #
+      # Perhaps create a function (which can be invoked, of course, via the script)
+      # that toggles command-array shifting.
+      #
+      # Basically, if looping is on then the shifted value gets pushed back to the end of the list
+      # While looping is false the commands are discarded.
+      #
+      # So, the very first script commands could set looping on or off.
+      #
+      #  You can also have looping turned on later in a script so that the first n lines are 
+      #  executed once and all n+ lines re looped (since now  the array is restoring itself)
+      #
       def run
-        @commands.each do |c|
-          next  if c =~ /^#/
-          execute_command c
+        while !@commands.empty?
+          process_comand_list
+          sleep TIME_FRACTION
         end
       end
 
@@ -262,15 +328,24 @@ module Neurogami
         message, s = *(s.split /\s/, 2)
 
         args = string_to_args s
-        args.map! { |a| arg_to_type a }
-        msg = OSC::Message.new message, *args  
+        if args
+          args.map! { |a| arg_to_type a }
+        end
+        
+        msg = if args 
+                OSC::Message.new message, *args  
+              else
+                OSC::Message.new message
+              end
+
 
         t = Thread.new do
           begin
             @client.send msg
           rescue 
             warn '!'*80
-            warn "Error sending OSC message: #{$!}"
+            warn "Error sending OSC message #{msg.inspect}: #{$!}"
+            warn "@client = #{@client.inspect}"
             warn '!'*80
           end
         end
