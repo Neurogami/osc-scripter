@@ -2,9 +2,9 @@ osc-scripter
 ===========
 
 
-Command-line app to send a series of OSC ([Open Sound Control](http://osc.justthebestparts.com/)) messages to a target OSC server.  The program reads a script file that contains some basic configuration info and then a series of commands. 
+This is a command-line app that sends a series of OSC ([Open Sound Control](http://osc.justthebestparts.com/)) messages to a target OSC server.  The program reads a script file that contains some basic configuration info followed by a series of commands. 
 
-The commands can be raw OSC messages, or they can be instructions to invoke a method that in turn constructs a sequence of OSC messages.
+Commands can take different forms.  The can be raw OSC messages, or they can be instructions to invoke a method that in turn constructs a sequence of OSC messages.
 
 Such complex commands can also be set to run in an endless loop, so you can kick of some repeating behavior while continuing to send other messages.
 

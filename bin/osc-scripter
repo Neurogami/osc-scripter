@@ -6,7 +6,7 @@ require File.join(root, %w[lib osc-scripter])
 # Put your code here
 
 if ARGV.empty?
-  puts "Usage: osc-scripter <path-to-script-file> [optional-path-handler-code-file]"
+  puts "Usage: osc-scripter <path-to-script-file> [optional-path-to-handler-code-file]"
   exit
 end
 
