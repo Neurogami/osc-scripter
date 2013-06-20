@@ -13,31 +13,27 @@ module Neurogami
       def initialize port, runner 
         @runner = runner 
         if port.to_i > 0
-       
-        @server = Server.new port
 
-       Thread.new do 
-          serve
-       end
+          @server = Server.new port
+
+          Thread.new do 
+            serve
+          end
         else
-           warn "OscServer has been given port 0, so no server will be available"
+          warn "OscServer has been given port 0, so no server will be available"
         end
 
       end
 
       def serve
         @server.add_method /eval/ do |msg|
-            puts "* #{msg.address} -  #{ msg.to_a.join(', ') }"
-            @runner.execute_command msg.to_a.join(' ')
+          puts "* #{msg.address} -  #{ msg.to_a.join(', ') }"
+          @runner.execute_command msg.to_a.join(' ')
         end
 
-
         @server.add_method /add/ do |msg|
-          # The assumption is that content of the OSC message is simply a string such as what
-          # you would have in a script file.  This method just takes that string and
-          # has the runner execute it
-            puts "* #{msg.address} -  #{ msg.to_a.join(', ') }"
-            @runner.execute_command msg.to_a.join(' ')
+          puts "* #{msg.address} -  #{ msg.to_a.join(', ') }"
+          @runner.commands.push msg.to_a.join(' ')
         end
 
         @thread = Thread.new do
@@ -57,14 +53,14 @@ module Neurogami
 
       include  OSC
       include Utils
-      
+
       TIME_FRACTION = 0.01
 
       def loop_on
         @looping = true
       end
 
-     def loop_off
+      def loop_off
         @looping = false
       end
 
@@ -106,13 +102,17 @@ module Neurogami
         @address
       end
 
+      def commands
+        @commands
+      end
+
       def execute_command c
         c = c.to_s
         c.strip!
         @commands.push(c) if looping?
         warn "\t\texecute_command #{c}"
-        
-# Maybe a hack, but this allows a comment to server as a 'keep alive' command
+
+        # Maybe a hack, but this allows a comment to server as a 'keep alive' command
         # if 'looping?' is true
         return if c =~ /^#/
 
@@ -126,7 +126,7 @@ module Neurogami
           end
         else
           if  c =~ /^:/ # This is a complex command request
-            
+
             warn "==================== COMPLEX COMMAND ===================="
             data = chunk_complex_command_string c
 
@@ -149,7 +149,7 @@ module Neurogami
                 if data[:label]
                   @threaded_loops[data[:label]] = t 
                 end
-             
+
               else
                 send data[:command], *data[:args] 
               end
@@ -331,7 +331,7 @@ module Neurogami
         if args
           args.map! { |a| arg_to_type a }
         end
-        
+
         msg = if args 
                 OSC::Message.new message, *args  
               else
