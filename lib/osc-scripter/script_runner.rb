@@ -1,5 +1,5 @@
 require 'osc-ruby'
-require 'utils'
+require 'osc-scripter/utils'
 
 Thread.abort_on_exception = true
 
@@ -116,7 +116,7 @@ module Neurogami
         # if 'looping?' is true
         return if c =~ /^#/
 
-        if c =~ /^[0..9]/
+        if c =~ /^\d/
           tnow = Time.now
           pause = c.to_f
           warn  "Pause for #{pause} seconds ..."
