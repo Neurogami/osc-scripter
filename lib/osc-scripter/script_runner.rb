@@ -26,10 +26,32 @@ module Neurogami
       end
 
       def serve
+        # Interesting problem:
+        # If `loop_on`  has been called, then calling `execute_command`
+        # would execute but would also push the command into the command array.
+        # If you have some external program that is calling into `osc-scripter`
+        # then you can end up with recurring commands getting called when that
+        # was not the intent.
+        # But, you know, if you've turned on global looping maybe the *is* the intent
+        # There needs to be a way to explicitly indicate when a posted message is
+        # meant as a "one shot" and should not get put back into the command 
+        # array.  
+        #
+        # Right now these handler assume a single argument, a string that holds a complete
+        # command as would appear in a script.
+        #
+        # OSC doesn't allow for named args.  You need a convention for the address patterns
+        # and what they accept.
         @server.add_method /eval/ do |msg|
           puts "* #{msg.address} -  #{ msg.to_a.join(', ') }"
           @runner.execute_command msg.to_a.join(' ')
         end
+
+        @server.add_method /once/ do |msg|
+          puts "* #{msg.address} -  #{ msg.to_a.join(', ') }"
+          @runner.execute_command msg.to_a.join(' '), :skip_appending
+        end
+
 
         @server.add_method /add/ do |msg|
           puts "* #{msg.address} -  #{ msg.to_a.join(', ') }"
@@ -106,10 +128,12 @@ module Neurogami
         @commands
       end
 
-      def execute_command c
+      def execute_command c, skip_appending = nil
         c = c.to_s
         c.strip!
-        @commands.push(c) if looping?
+        
+        @commands.push(c) if looping? && !skip_appending
+
         warn "\t\texecute_command #{c}"
 
         # Maybe a hack, but this allows a comment to server as a 'keep alive' command
@@ -285,13 +309,11 @@ module Neurogami
           c = @commands.shift 
           c.strip!
           next if c.empty?
-          warn "HAVE COMMAND: #{c.inspect}"
-          # next  if c =~ /^#/
           execute_command c
         end
       end
 
-      # Something to consider:  If the list of commands is exhusted, the runner stops.
+      # Something to consider:  If the list of commands is exhausted, the runner stops.
       # However, it *could* keep running and wait for commands over OSC.
       #
       # We could also allow for OSC messages that add commands to the queue.
